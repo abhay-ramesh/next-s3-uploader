@@ -1,5 +1,11 @@
 # next-s3-uploader
 
+## 0.1.2
+
+### Patch Changes
+
+- Fixes
+
 ## 0.1.1
 
 ### Patch Changes
