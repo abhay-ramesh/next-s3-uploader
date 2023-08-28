@@ -4,6 +4,10 @@
   "author": "Abhay Ramesh",
   "license": "MIT",
   "description": "A simple way to upload files to S3 from a Next.js app directory (aws s3, minio, or any s3 compatible service)",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/abhay-ramesh/next-s3-uploader.git"
+  },
   "main": "./dist/index.js",
   "types": "./dist/index.d.mts",
   "module": "./dist/index.mjs",
