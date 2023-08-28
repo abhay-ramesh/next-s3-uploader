@@ -24,8 +24,5 @@
     "typescript": "^5.2.2",
     "next-s3-uploader": "workspace:*"
   },
-  "devDependencies": {
-    "@custom/tsconfig": "workspace:*",
-    "eslint-config-custom": "workspace:*"
-  }
+  "devDependencies": {}
 }

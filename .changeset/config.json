@@ -6,6 +6,11 @@
   "linked": [],
   "access": "public",
   "updateInternalDependencies": "patch",
-  "ignore": [],
+  "ignore": [
+    "docs",
+    "example",
+    "@custom/tsconfig",
+    "eslint-config-custom"
+  ],
   "baseBranch": "main"
 }
