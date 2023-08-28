@@ -7,7 +7,6 @@
   "access": "public",
   "updateInternalDependencies": "patch",
   "ignore": [
-    "docs",
     "example",
     "@custom/tsconfig",
     "eslint-config-custom"
