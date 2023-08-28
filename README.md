@@ -1,73 +1,402 @@
-# Turborepo Design System starter with Changesets
+# Next S3 Uploader
 
-This is an official React design system starter powered by Turborepo. Versioning and package publishing is handled by [Changesets](https://github.com/changesets/changesets) and fully automated with GitHub Actions.
+**Next S3 Uploader** is a utility package for handling file uploads to Amazon S3 or compatible services like MinIO in a Next.js application. It simplifies the process of integrating secure and scalable cloud storage for your Next.js projects.
 
-## Using this example
+## Features
 
-Run the following command:
+- **Easy Integration**: Seamlessly integrate file upload functionality into your Next.js applications.
+- **Custom Hook**: Provides a custom hook, `useS3FileUpload`, to manage file uploads and track progress.
+- **Pre-Signed URLs**: Generates pre-signed URLs for secure file uploads directly to Amazon S3 or compatible services.
+- **Estimate Time Left**: Calculates and displays estimated time left for ongoing file uploads.
+- **Configurable**: Supports flexible configuration for both S3 and MinIO services.
 
-```sh
-npx create-turbo@latest -e with-changesets
+> **Warning**: This package is currently in beta and is not recommended for production use and currently only supports uploading files to public buckets.
+
+## Installation
+
+Install the package using your preferred package manager:
+
+```bash
+# Using npm
+npm install next-s3-uploader
 ```
 
-## What's inside?
-
-This Turborepo includes the following:
-
-### Apps and Packages
-
-- `docs`: A placeholder documentation site powered by [Next.js](https://nextjs.org/)
-- `@acme/core`: core React components
-- `@acme/utils`: shared React utilities
-- `@acme/tsconfig`: shared `tsconfig.json`s used throughout the monorepo
-- `eslint-config-acme`: ESLint preset
-
-Each package and app is 100% [TypeScript](https://www.typescriptlang.org/).
-
-### Utilities
-
-This Turborepo has some additional tools already setup for you:
-
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
-
-### Useful commands
-
-- `yarn build` - Build all packages and the docs site
-- `yarn dev` - Develop all packages and the docs site
-- `yarn lint` - Lint all packages
-- `yarn changeset` - Generate a changeset
-- `yarn clean` - Clean up all `node_modules` and `dist` folders (runs each package's clean script)
-
-### Changing the npm organization scope
-
-The npm organization scope for this design system starter is `@acme`. To change this, it's a bit manual at the moment, but you'll need to do the following:
-
-- Rename folders in `packages/*` to replace `acme` with your desired scope
-- Search and replace `acme` with your desired scope
-- Re-run `yarn install`
-
-## Versioning and Publishing packages
-
-Package publishing has been configured using [Changesets](https://github.com/changesets/changesets). Please review their [documentation](https://github.com/changesets/changesets#documentation) to familiarize yourself with the workflow.
-
-This example comes with automated npm releases setup in a [GitHub Action](https://github.com/changesets/action). To get this working, you will need to create an `NPM_TOKEN` and `GITHUB_TOKEN` in your repository settings. You should also install the [Changesets bot](https://github.com/apps/changeset-bot) on your GitHub repository as well.
-
-For more information about this automation, refer to the official [changesets documentation](https://github.com/changesets/changesets/blob/main/docs/automating-changesets.md)
-
-### npm
-
-If you want to publish package to the public npm registry and make them publicly available, this is already setup.
-
-To publish packages to a private npm organization scope, **remove** the following from each of the `package.json`'s
-
-```diff
-- "publishConfig": {
--  "access": "public"
-- },
+```bash
+# Using yarn
+yarn add next-s3-uploader
 ```
 
-### GitHub Package Registry
+```bash
+# Using pnpm
+pnpm add next-s3-uploader
+```
 
-See [Working with the npm registry](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-npm-registry#publishing-a-package-using-publishconfig-in-the-packagejson-file)
+## Usage
+
+### Frontend (Nextjs App Directory)
+
+Import the `useS3FileUpload` hook and use it in your Nextjs component:
+
+```jsx
+"use client";
+
+import { useS3FileUpload } from "next-s3-uploader";
+
+function UploadPage() {
+  const { uploadedFiles, uploadFiles } = useS3FileUpload({
+    multiple: true, // Allow multiple flie uploads (optional)
+    maxFiles: 10, // 10 files limit (optional)
+    maxFileSize: 10 * 1024 * 1024, // 10MB limit (optional)
+  });
+
+  const handleFileChange = async (e) => {
+    // Get selected files from input and check if length > 0 then upload files to S3
+    const files = e.target.files;
+    if (files && files.length > 0) {
+      await uploadFiles(files);
+    }
+  };
+
+  return (
+    <div>
+      <h1>File Upload to Amazon S3</h1>
+      <input
+        title="Upload File"
+        type="file"
+        accept="image/*"
+        multiple
+        onChange={handleFileChange}
+      />
+      {/* Display uploaded files and progress */}
+      <div>
+        {uploadedFiles.map((file, index) => (
+          <div key={index}>
+            <p>File Key: {file.key}</p>
+            <p>Status: {file.status}</p>
+            <p>Progress: {file.progress}%</p>
+            <p>Time Left: {file.timeLeft || "Calculating..."}</p>
+            {file.status === "success" && (
+              <img src={file.url} alt={`Uploaded File ${index}`} />
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export default UploadPage;
+```
+
+### API Route
+
+Use the `createS3Client` and `generatePresignedUrls` functions to create an API route for handling pre-signed URLs:
+
+```javascript
+import { createS3Client, generatePresignedUrls } from "next-s3-uploader";
+
+export async function POST(req) {
+  try {
+    const { keys } = await req.json();
+
+    // Configure S3 client
+    const s3Client = createS3Client({
+      provider: "minio", // Store in .env
+      endpoint: "http://localhost:9000/", // Store in .env
+      region: "ap-south-1", // Store in .env
+      forcePathStyle: true, // Store in .env
+      credentials: {
+        accessKeyId: "ROOTNAME", // Store in .env
+        secretAccessKey: "CHANGEME123", // Store in .env
+      },
+    });
+
+    // Generate pre-signed URLs
+    const bucket = "your-bucket-name";
+    const prefix = `userId/images/`;
+    const urls = await generatePresignedUrls(s3Client, keys, bucket, prefix);
+
+    return new Response(JSON.stringify(urls), { status: 200 });
+  } catch (error) {
+    console.error("Error processing the request:", error);
+    return new Response("Internal Server Error", { status: 500 });
+  }
+}
+```
+
+## API
+
+The package provides the following functions:
+
+### `useS3FileUpload` Hook Options
+
+The `useS3FileUpload` hook accepts an options object that allows customization of the file upload behavior. Available options include:
+
+- `multiple` (boolean, optional): Allow multiple file uploads at once. Default is `false`.
+
+- `maxFiles` (number, optional): Set the maximum number of files that can be uploaded.
+
+- `maxFileSize` (number, optional): Specify the maximum allowed file size for uploads.
+
+#### `uploadFiles` Function Options
+
+The `uploadFiles` function initiates file uploads to Amazon S3 and supports customization:
+
+- `files` (required): Array of `File` objects to be uploaded.
+
+- `customKeys` (optional): Array of custom keys corresponding to uploaded files.
+
+- `endpoint` (optional): API endpoint for generating pre-signed URLs. Default is `/api/s3upload`.
+
+#### `uploadedFiles` Array Properties
+
+The `uploadedFiles` array contains information about each uploaded file:
+
+- `key` (string): Unique key or filename for the uploaded file.
+
+- `status` (string): Upload status (`'uploading'`, `'success'`, `'error'`).
+
+- `progress` (number): Upload progress percentage (0 to 100).
+
+- `url` (string): URL to access the uploaded file on Amazon S3.
+
+- `timeLeft` (string): Estimate of remaining time for the upload to complete.
+
+---
+
+Sure, here's the updated description for the `createS3Client` function in the API reference:
+
+### `createS3Client(config)`
+
+This function creates an S3 client instance.
+
+- `config`: An object containing S3 configuration options. The available properties are:
+  - `provider` (string): The cloud storage provider to use (`"s3"` for Amazon S3 or `"minio"` for MinIO or `"other"` for other S3-compatible services).
+  - `endpoint` (string, optional): The endpoint URL of the cloud storage service. Required\* for MinIO or other S3-compatible services.
+  - `region` (string): The AWS region or MinIO region to use.
+  - `forcePathStyle` (boolean, optional): Whether to use path-style addressing for S3 bucket access. Only required for MinIO or other S3-compatible services.
+  - `credentials` (object): An object containing AWS access credentials.
+    - `accessKeyId` (string): The access key ID.
+    - `secretAccessKey` (string): The secret access key.
+
+### `generatePresignedUrls(s3Client, keys, bucket, prefix?)`
+
+Generates pre-signed URLs for uploading objects to S3.
+
+- `s3Client`: An instance of the S3 client.
+- `keys`: An array of object keys to upload.
+- `bucket`: The S3 bucket name.
+- `prefix`: (Optional) Prefix for object keys.
+
+## Example Usage
+
+### Allow Multiple File Uploads
+
+```jsx
+const { uploadedFiles, uploadFiles } = useS3FileUpload({
+  multiple: true,
+});
+```
+
+### Limit Number of Uploaded Files
+
+```jsx
+const { uploadedFiles, uploadFiles } = useS3FileUpload({
+  multiple: true,
+  maxFiles: 3,
+});
+```
+
+### Set Maximum File Size
+
+```jsx
+const { uploadedFiles, uploadFiles } = useS3FileUpload({
+  maxFileSize: 5242880, // 5MB limit
+});
+```
+
+### Custom Keys
+
+```jsx
+const { uploadedFiles, uploadFiles } = useS3FileUpload();
+
+const handleFileChange = async (e) => {
+  const files = e.target.files;
+  if (files && files.length > 0) {
+    const customKeys = ["file1.jpg", "images/file2.jpg", "docs/file3.pdf"];
+    await uploadFiles(files, customKeys);
+  }
+};
+```
+
+### Custom API Endpoint
+
+```jsx
+const { uploadedFiles, uploadFiles } = useS3FileUpload();
+
+const handleFileChange = async (e) => {
+  const files = e.target.files;
+  if (files && files.length > 0) {
+    await uploadFiles(files, null, "/api/custom-upload-route");
+  }
+};
+```
+
+### AWS S3 Client
+
+```javascript
+const s3Client = createS3Client({
+  provider: "s3", // Amazon S3 provider
+  region: "us-east-1", // Specify the appropriate AWS region
+  credentials: {
+    accessKeyId: "YOUR_ACCESS_KEY_ID", // Your AWS access key ID
+    secretAccessKey: "YOUR_SECRET_ACCESS_KEY", // Your AWS secret access key
+  },
+});
+```
+
+### Non-AWS S3 Compatible Client (MinIO/Non-AWS)
+
+```javascript
+const s3Client = createS3Client({
+  provider: "minio", // Non-AWS S3 provider (minio/other)
+  endpoint: "http://localhost:9000", // Specify the appropriate endpoint
+  region: "us-east-1", // Specify the appropriate region
+  forcePathStyle: true, // Required for MinIO
+  credentials: {
+    accessKeyId: "ROOTNAME", // Your access key
+    secretAccessKey: "CHANGEME123", // Your secret key
+  },
+});
+```
+
+Certainly! Here are some different example usage scenarios for the `next-s3-uploader` package:
+
+### Basic File Upload
+
+This is the simplest use case where you want to allow users to upload files to your application.
+
+```javascript
+// Your API Route
+import { createS3Client, generatePresignedUrls } from "next-s3-uploader";
+
+export async function POST(req: Request) {
+    const { keys } = await req.json();
+    const bucket = "linkjs";
+
+    const s3Client = createS3Client({
+      provider: "aws",
+      region: "ap-south-1",
+      credentials: {
+        accessKeyId: "YOUR_ACCESS_KEY_ID",
+        secretAccessKey: "YOUR_SECRET_ACCESS_KEY",
+      },
+    });
+
+    const urls = await generatePresignedUrls(s3Client, keys, bucket);
+
+    return new Response(JSON.stringify(urls), { status: 200 });
+}
+```
+
+### Authenticated Upload
+
+In this scenario, you might require users to be authenticated before they can upload files.
+
+```javascript
+// Your API Route (with authentication check)
+import { createS3Client, generatePresignedUrls } from "next-s3-uploader";
+
+export async function POST(req: Request) {
+    // Check user authentication here
+    if (!authenticatedUser) {
+    return new Response("Unauthorized", { status: 401 });
+    }
+
+    const { keys } = await req.json();
+    const bucket = "linkjs";
+    const userId = req.user.id;
+    const prefix = `${userId}/images/`;
+
+    const s3Client = createS3Client({
+      provider: "aws",
+      region: "ap-south-1",
+      credentials: {
+        accessKeyId: "YOUR_ACCESS_KEY_ID",
+        secretAccessKey: "YOUR_SECRET_ACCESS_KEY",
+      },
+    });
+
+    const urls = await generatePresignedUrls(s3Client, keys, bucket, prefix);
+
+    return new Response(JSON.stringify(urls), { status: 200 });
+}
+```
+
+### Project-Specific Upload
+
+In this case, you might want to organize uploaded files into different projects or folders.
+
+```javascript
+// Your API Route (with project-specific prefix)
+import { createS3Client, generatePresignedUrls } from "next-s3-uploader";
+
+export async function POST(req: Request) {
+    const { keys, projectId } = await req.json();
+    const bucket = "linkjs";
+    const prefix = `projects/${projectId}/images/`;
+
+    const s3Client = createS3Client({
+      provider: "aws",
+      region: "ap-south-1",
+      credentials: {
+        accessKeyId: "YOUR_ACCESS_KEY_ID",
+        secretAccessKey: "YOUR_SECRET_ACCESS_KEY",
+      },
+    });
+
+    const urls = await generatePresignedUrls(s3Client, keys, bucket, prefix);
+
+    return new Response(JSON.stringify(urls), { status: 200 });
+}
+```
+
+### Organization/Company File Storage
+
+If you're building an application for an organization or company, you might want to organize files by departments.
+
+```javascript
+// Your API Route (with organization-specific prefix)
+import { createS3Client, generatePresignedUrls } from "next-s3-uploader";
+
+export async function POST(req: Request) {
+    const { keys, organizationId, departmentId } = await req.json();
+    const bucket = "linkjs";
+    const prefix = `orgs/${organizationId}/depts/${departmentId}/files/`;
+
+    const s3Client = createS3Client({
+    provider: "minio",
+    endpoint: "http://localhost:9000/",
+    region: "ap-south-1",
+    forcePathStyle: true,
+    credentials: {
+        accessKeyId: "ROOTNAME",
+        secretAccessKey: "CHANGEME123",
+    },
+    });
+
+    const urls = await generatePresignedUrls(s3Client, keys, bucket, prefix);
+
+    return new Response(JSON.stringify(urls), { status: 200 });
+}
+```
+
+## Contributing
+
+Contributions are welcome! Please submit issues and pull requests.
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
