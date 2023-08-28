@@ -1,0 +1,45 @@
+{
+  "name": "next-s3-uploader",
+  "version": "0.0.1",
+  "author": "Abhay Ramesh",
+  "license": "MIT",
+  "description": "A simple way to upload files to S3 from a Next.js app directory (aws s3, minio, or any s3 compatible service)",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.mts",
+  "module": "./dist/index.mjs",
+  "files": [
+    "dist/**/*"
+  ],
+  "scripts": {
+    "dev": "tsup src/index.ts --format cjs,esm --dts --watch --clean",
+    "build": "tsup src/index.ts --format cjs,esm --dts --minify --clean",
+    "lint": "tsc",
+    "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist",
+    "ci": "pnpm run lint && pnpm run build"
+  },
+  "keywords": [
+    "nextjs",
+    "s3",
+    "minio",
+    "upload",
+    "react",
+    "nextjs app directory",
+    "nextjs app folder",
+    "nextjs 13 app directory file upload"
+  ],
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.400.0",
+    "@aws-sdk/s3-request-presigner": "^3.400.0",
+    "@aws-sdk/signature-v4-crt": "^3.398.0",
+    "aws-crt": "^1.18.0",
+    "react": "^18.2.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.21",
+    "tsup": "^7.2.0",
+    "typescript": "^5.2.2"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
