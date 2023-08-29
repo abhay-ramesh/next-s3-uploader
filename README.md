@@ -1,4 +1,4 @@
-# Next S3 Uploader
+# Next.js S3 Uploader
 
 **Next S3 Uploader** is a utility package for handling file uploads to Amazon S3 or compatible services like MinIO in a Next.js application. It simplifies the process of integrating secure and scalable cloud storage for your Next.js projects.
 
