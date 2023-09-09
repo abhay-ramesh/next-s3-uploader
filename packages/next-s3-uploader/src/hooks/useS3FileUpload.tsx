@@ -26,10 +26,26 @@ export const useS3FileUpload = (options: UploadOptions = {}) => {
   const { maxFiles, maxFileSize, multiple } = options;
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
 
+  const reset = () => {
+    setUploadedFiles([]);
+  };
+
+  /**
+   * Uploads files to S3.
+   * @param files - The files to upload.
+   * @param customKeys - Custom keys to use for the uploaded files. If not provided, the file names will be used.
+   * @param apiEndpoint - The API endpoint to use to get presigned URLs. Defaults to "/api/s3upload".
+   * @param requestOptions - Options to pass to the fetch request.
+   * @returns An array of uploaded files.
+   * @example
+   * const files = await uploadFiles(fileList);
+   * const files = await uploadFiles(fileList, ["file1", "file2"]);
+   */
   const uploadFiles = async (
     files: FileList | File[],
     customKeys?: string[],
-    apiEndpoint: string = "/api/s3upload"
+    apiEndpoint: string = "/api/s3upload",
+    requestOptions?: RequestInit
   ) => {
     if (!multiple && files.length > 1) {
       console.error("Only one file can be uploaded.");
@@ -66,11 +82,13 @@ export const useS3FileUpload = (options: UploadOptions = {}) => {
 
     try {
       const response = await fetch(apiEndpoint, {
-        method: "POST",
-        body: JSON.stringify({
-          keys: customKeys || Array.from(files).map((file) => file.name),
-        }),
-        headers: {
+        method: requestOptions?.method || "POST",
+        body:
+          requestOptions?.body ||
+          JSON.stringify({
+            keys: customKeys || Array.from(files).map((file) => file.name),
+          }),
+        headers: requestOptions?.headers || {
           "Content-Type": "application/json",
         },
       });
@@ -143,6 +161,7 @@ export const useS3FileUpload = (options: UploadOptions = {}) => {
         });
 
         await Promise.all(promises);
+        return uploadedFiles;
       } else {
         console.error("Failed to get presigned URLs.");
       }
@@ -151,5 +170,5 @@ export const useS3FileUpload = (options: UploadOptions = {}) => {
     }
   };
 
-  return { uploadedFiles, uploadFiles };
+  return { uploadedFiles, uploadFiles, reset };
 };

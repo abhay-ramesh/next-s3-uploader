@@ -1,6 +1,7 @@
 import { createS3Client, generatePresignedUrls } from "next-s3-uploader";
+import { type NextRequest } from "next/server";
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   const { keys } = await req.json();
   const bucket = "check";
   const prefix = `userId/images/`;

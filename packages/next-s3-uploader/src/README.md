@@ -162,6 +162,10 @@ The `uploadedFiles` array contains information about each uploaded file:
 
 - `timeLeft` (string): Estimate of remaining time for the upload to complete.
 
+#### `reset` Function
+
+The `reset` function resets the `uploadedFiles` array to its initial state.
+
 ---
 
 Sure, here's the updated description for the `createS3Client` function in the API reference:
