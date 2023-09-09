@@ -37,17 +37,3 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-
-      - name: Comment on PR
-        uses: actions/github-script@v4
-        if: steps.changesets.outputs.created_release_pr == 'true'
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            github.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: 'A release PR has been created for this PR. You can check it out [here](
-                ' + context.payload.repository.html_url + '/pull/' + steps.changesets.outputs.release_pr_number + ').'
-            })
