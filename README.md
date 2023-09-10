@@ -1,8 +1,11 @@
 # Next.js S3 Uploader
 
 ![Next.js S3 File Uploader](Next.js-S3-Uploader.png)
+
 ![npm](https://img.shields.io/npm/dm/next-s3-uploader)
+![npm](https://img.shields.io/npm/v/next-s3-uploader)
 ![GitHub](https://img.shields.io/github/license/abhay-ramesh/next-s3-uploader)
+![example workflow](https://github.com/abhay-ramesh/next-s3-uploader/actions/workflows/release.yml/badge.svg)
 <!-- ![GitHub last commit](https://img.shields.io/github/last-commit/abhay-ramesh/next-s3-uploader) -->
 <!-- ![GitHub stars](https://img.shields.io/github/stars/abhay-ramesh/next-s3-uploader) -->
 
