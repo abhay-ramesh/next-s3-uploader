@@ -1,5 +1,11 @@
 # next-s3-uploader
 
+## 0.1.3
+
+### Patch Changes
+
+- Better Docs with reset option
+
 ## 0.1.2
 
 ### Patch Changes

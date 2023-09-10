@@ -1,6 +1,46 @@
-# Next S3 Uploader
+# Next.js S3 Uploader
+
+![Next.js S3 File Uploader](Next.js-S3-Uploader.png)
+
+![npm](https://img.shields.io/npm/dm/next-s3-uploader)
+![npm](https://img.shields.io/npm/v/next-s3-uploader)
+![GitHub](https://img.shields.io/github/license/abhay-ramesh/next-s3-uploader)
+![example workflow](https://github.com/abhay-ramesh/next-s3-uploader/actions/workflows/release.yml/badge.svg)
+<!-- ![GitHub last commit](https://img.shields.io/github/last-commit/abhay-ramesh/next-s3-uploader) -->
+<!-- ![GitHub stars](https://img.shields.io/github/stars/abhay-ramesh/next-s3-uploader) -->
 
 **Next S3 Uploader** is a utility package for handling file uploads to Amazon S3 or compatible services like MinIO in a Next.js application. It simplifies the process of integrating secure and scalable cloud storage for your Next.js projects.
+
+## Table of Contents
+
+- [Next.js S3 Uploader](#nextjs-s3-uploader)
+  - [Table of Contents](#table-of-contents)
+  - [Features](#features)
+  - [Installation](#installation)
+  - [Usage](#usage)
+    - [Frontend (Nextjs App Directory)](#frontend-nextjs-app-directory)
+    - [API Route](#api-route)
+  - [API](#api)
+    - [`useS3FileUpload` Hook Options](#uses3fileupload-hook-options)
+      - [`uploadFiles` Function Options](#uploadfiles-function-options)
+      - [`uploadedFiles` Array Properties](#uploadedfiles-array-properties)
+      - [`reset` Function](#reset-function)
+    - [`createS3Client(config)`](#creates3clientconfig)
+    - [`generatePresignedUrls(s3Client, keys, bucket, prefix?)`](#generatepresignedurlss3client-keys-bucket-prefix)
+  - [Example Usage](#example-usage)
+    - [Allow Multiple File Uploads](#allow-multiple-file-uploads)
+    - [Limit Number of Uploaded Files](#limit-number-of-uploaded-files)
+    - [Set Maximum File Size](#set-maximum-file-size)
+    - [Custom Keys](#custom-keys)
+    - [Custom API Endpoint](#custom-api-endpoint)
+    - [AWS S3 Client](#aws-s3-client)
+    - [Non-AWS S3 Compatible Client (MinIO/Non-AWS)](#non-aws-s3-compatible-client-minionon-aws)
+    - [Basic File Upload](#basic-file-upload)
+    - [Authenticated Upload](#authenticated-upload)
+    - [Project-Specific Upload](#project-specific-upload)
+    - [Organization/Company File Storage](#organizationcompany-file-storage)
+  - [Contributing](#contributing)
+  - [License](#license)
 
 ## Features
 
@@ -148,6 +188,8 @@ The `uploadFiles` function initiates file uploads to Amazon S3 and supports cust
 
 - `endpoint` (optional): API endpoint for generating pre-signed URLs. Default is `/api/s3upload`.
 
+- `requestOptions` (optional): Additional options to pass to the `fetch` function.
+
 #### `uploadedFiles` Array Properties
 
 The `uploadedFiles` array contains information about each uploaded file:
@@ -162,9 +204,11 @@ The `uploadedFiles` array contains information about each uploaded file:
 
 - `timeLeft` (string): Estimate of remaining time for the upload to complete.
 
----
+#### `reset` Function
 
-Sure, here's the updated description for the `createS3Client` function in the API reference:
+The `reset` function resets the `uploadedFiles` array to its initial state. (Sets `uploadedFiles` to an empty array.)
+
+---
 
 ### `createS3Client(config)`
 
