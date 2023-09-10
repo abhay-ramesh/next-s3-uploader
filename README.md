@@ -150,6 +150,8 @@ The `uploadFiles` function initiates file uploads to Amazon S3 and supports cust
 
 - `endpoint` (optional): API endpoint for generating pre-signed URLs. Default is `/api/s3upload`.
 
+- `requestOptions` (optional): Additional options to pass to the `fetch` function.
+
 #### `uploadedFiles` Array Properties
 
 The `uploadedFiles` array contains information about each uploaded file:
@@ -164,9 +166,11 @@ The `uploadedFiles` array contains information about each uploaded file:
 
 - `timeLeft` (string): Estimate of remaining time for the upload to complete.
 
----
+#### `reset` Function
 
-Sure, here's the updated description for the `createS3Client` function in the API reference:
+The `reset` function resets the `uploadedFiles` array to its initial state. (Sets `uploadedFiles` to an empty array.)
+
+---
 
 ### `createS3Client(config)`
 
