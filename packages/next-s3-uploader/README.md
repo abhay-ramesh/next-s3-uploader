@@ -18,6 +18,7 @@
   - [Features](#features)
   - [Installation](#installation)
   - [Usage](#usage)
+    - [Prerequisites](#prerequisites)
     - [Frontend (Nextjs App Directory)](#frontend-nextjs-app-directory)
     - [API Route](#api-route)
   - [API](#api)
@@ -72,6 +73,31 @@ pnpm add next-s3-uploader
 ```
 
 ## Usage
+
+### Prerequisites
+
+AWS S3 or compatible service (MinIO, etc.) with a `public` bucket. To be set with policy:
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "PublicRead",
+      "Effect": "Allow",
+      "Principal": "*",
+      "Action": ["s3:GetObject"],
+      "Resource": ["arn:aws:s3:::your-bucket-name/*"]
+    }
+  ]
+}
+```
+
+--- Or ---
+
+AWS S3 or compatible service (MinIO, etc.) with a `private` bucket. To be set with policy:
+
+In `generatePresignedUrls` function, set `privateBucket` to `true`.
 
 ### Frontend (Nextjs App Directory)
 
@@ -231,6 +257,7 @@ Generates pre-signed URLs for uploading objects to S3.
 - `keys`: An array of object keys to upload.
 - `bucket`: The S3 bucket name.
 - `prefix`: (Optional) Prefix for object keys.
+- `privateBucket`: (Optional) Whether the bucket is private. Default is `false`.
 
 ## Example Usage
 
