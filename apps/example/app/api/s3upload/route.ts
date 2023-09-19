@@ -7,13 +7,13 @@ export async function POST(req: NextRequest) {
   const prefix = `userId/images/`;
 
   const s3Client = createS3Client({
-    provider: process.env.S3_PROVIDER, // Store in .env
+    provider: process.env.S3_PROVIDER as "aws" | "minio" | "other", // Store in .env
     endpoint: process.env.S3_ENDPOINT, // Store in .env (optional)
-    region: process.env.S3_REGION, // Store in .env and use the same region as the bucket and make sure it is correct
+    region: process.env.S3_REGION ?? "us-east-1", // Store in .env and use the same region as the bucket and make sure it is correct
     forcePathStyle: process.env.S3_FORCE_PATH_STYLE === "true", // Store in .env (optional)
     credentials: {
-      accessKeyId: process.env.S3_ACCESS_KEY, // Store in .env
-      secretAccessKey: process.env.S3_SECRET_KEY, // Store in .env
+      accessKeyId: process.env.S3_ACCESS_KEY ?? "minioadmin", // Store in .env
+      secretAccessKey: process.env.S3_SECRET_KEY ?? "minioadmin", // Store in .env
     },
   });
 

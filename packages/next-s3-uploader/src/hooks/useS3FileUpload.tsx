@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { RefObject, useState } from "react";
 
 type UploadOptions = {
   multiple?: boolean;
@@ -26,7 +26,8 @@ export const useS3FileUpload = (options: UploadOptions = {}) => {
   const { maxFiles, maxFileSize, multiple } = options;
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
 
-  const reset = () => {
+  const reset = (ref?: RefObject<HTMLInputElement>) => {
+    ref?.current?.value ? (ref.current.value = "") : null;
     setUploadedFiles([]);
   };
 

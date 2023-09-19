@@ -1,6 +1,7 @@
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import {
   GetObjectCommand,
+  GetObjectCommandInput,
   PutObjectCommand,
   PutObjectCommandInput,
   S3Client,
@@ -39,42 +40,59 @@ export async function generatePresignedUrls(
   bucket: string,
   prefix?: string,
   privateBucket: boolean = false,
+  operation: "upload" | "download" = "upload",
+  options?: { expiresIn?: number }
 ) {
   const urls = [];
 
   for (const key of keys) {
     const newKey = `${prefix ?? ""}${key}`;
-    // Generate Presigned PutObject URL
-    const ObjectParams: PutObjectCommandInput = {
+    const ObjectParams: PutObjectCommandInput | GetObjectCommandInput = {
+      // Use a union type
       Bucket: bucket,
       Key: newKey,
     };
 
-    const presignedPutUrl = await getSignedUrl(
-      s3Client,
-      new PutObjectCommand(ObjectParams),
-      {
-        expiresIn: 3600,
-      },
-    );
-    let s3ObjectUrl = "";
-
-    if (!privateBucket) s3ObjectUrl = presignedPutUrl.split("?")[0];
-    else {
-      s3ObjectUrl = await getSignedUrl(
+    if (operation === "upload") {
+      const presignedPutUrl = await getSignedUrl(
         s3Client,
-        new GetObjectCommand(ObjectParams),
+        new PutObjectCommand(ObjectParams as PutObjectCommandInput), // Cast to the appropriate type
         {
-          expiresIn: 3600,
-        },
+          expiresIn: options?.expiresIn ?? 3600,
+        }
       );
-    }
+      let s3ObjectUrl = "";
 
-    urls.push({
-      key: newKey,
-      presignedPutUrl,
-      s3ObjectUrl,
-    });
+      if (!privateBucket) s3ObjectUrl = presignedPutUrl.split("?")[0];
+      else {
+        s3ObjectUrl = await getSignedUrl(
+          s3Client,
+          new GetObjectCommand(ObjectParams as GetObjectCommandInput), // Cast to the appropriate type
+          {
+            expiresIn: 3600,
+          }
+        );
+      }
+
+      urls.push({
+        key: newKey,
+        presignedPutUrl,
+        s3ObjectUrl,
+      });
+    } else if (operation === "download") {
+      const s3ObjectUrl = await getSignedUrl(
+        s3Client,
+        new GetObjectCommand(ObjectParams as GetObjectCommandInput), // Cast to the appropriate type
+        {
+          expiresIn: options?.expiresIn ?? 3600,
+        }
+      );
+
+      urls.push({
+        key: newKey,
+        s3ObjectUrl,
+      });
+    }
   }
 
   return urls;

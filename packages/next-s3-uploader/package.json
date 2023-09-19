@@ -15,7 +15,7 @@
     "dist/**/*"
   ],
   "scripts": {
-    "dev": "tsup src/index.ts --format cjs,esm --dts --watch --clean --external react",
+    "dev": "tsup src/index.ts --format cjs,esm --dts --minify --clean --external react",
     "build": "tsup src/index.ts --format cjs,esm --dts --minify --clean --external react",
     "lint": "tsc",
     "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist",

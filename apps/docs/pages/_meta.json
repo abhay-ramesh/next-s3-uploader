@@ -1,0 +1,30 @@
+{
+  "home": {
+    "title": "Home",
+    "type": "page",
+    "display": "hidden"
+  },
+  "contact": {
+    "title": "Contact ↗",
+    "type": "page",
+    "href": "https://twitter.com/shuding_",
+    "newWindow": true
+  },
+  "about": {
+    "title": "About",
+    "type": "page"
+  },
+  "index": "Introduction",
+  "getting-started": "Getting Started",
+  "config": "Configuration",
+  "usage": {
+    "title": "Usage"
+  },
+  "--- API Reference": {
+    "type": "separator",
+    "title": "API Reference"
+  },
+  "api-reference": {
+    "title": "API Reference"
+  }
+}
