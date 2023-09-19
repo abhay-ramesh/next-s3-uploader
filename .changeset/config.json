@@ -9,7 +9,8 @@
   "ignore": [
     "example",
     "@custom/tsconfig",
-    "eslint-config-custom"
+    "eslint-config-custom",
+    "nextra-docs-template"
   ],
   "baseBranch": "main"
 }
