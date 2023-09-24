@@ -19,7 +19,7 @@ const config: DocsThemeConfig = {
   head: (
     <>
       <Script
-        src={`https://www.googletagmanager.com/gtag/js?id=${process.env.GA_MEASUREMENT_ID}`}
+        src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID}`}
       />
       <Script id="google-analytics">
         {`
@@ -27,7 +27,7 @@ const config: DocsThemeConfig = {
           function gtag(){dataLayer.push(arguments);}
           gtag('js', new Date());
  
-          gtag('config', '${process.env.GA_MEASUREMENT_ID}');
+          gtag('config', '${process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID}');
         `}
       </Script>
     </>
@@ -40,7 +40,7 @@ const config: DocsThemeConfig = {
           <Link href="https://github.com/abhay-ramesh">Abhay Ramesh</Link>.
         </span>
         <Script
-          src={`https://www.googletagmanager.com/gtag/js?id=${process.env.GA_MEASUREMENT_ID}`}
+          src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID}`}
         />
         <Script id="google-analytics">
           {`
@@ -48,12 +48,13 @@ const config: DocsThemeConfig = {
           function gtag(){dataLayer.push(arguments);}
           gtag('js', new Date());
  
-          gtag('config', '${process.env.GA_MEASUREMENT_ID}');
+          gtag('config', '${process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID}');
         `}
         </Script>
       </>
     ),
   },
+
   components: {},
   banner: {
     dismissible: true,

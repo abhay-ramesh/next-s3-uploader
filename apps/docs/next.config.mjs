@@ -9,6 +9,7 @@ const withNextra = nextra({
   },
   defaultShowCopyCode: true,
   codeHighlight: true,
+  readingTime: true,
 })
 
 export default withNextra({
