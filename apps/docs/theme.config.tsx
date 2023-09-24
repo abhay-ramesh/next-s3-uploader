@@ -1,6 +1,7 @@
 import React from "react";
 import { DocsThemeConfig, Tabs } from "nextra-theme-docs";
 import Link from "next/link";
+import Script from "next/script";
 
 const config: DocsThemeConfig = {
   useNextSeoProps() {
@@ -15,6 +16,24 @@ const config: DocsThemeConfig = {
   },
   docsRepositoryBase:
     "https://github.com/abhay-ramesh/next-s3-uploader/tree/main/apps/docs",
+  head: (
+    <>
+      {process.env.NODE_ENV === "production" && (
+        <>
+          <Script src="https://www.googletagmanager.com/gtag/js?id=GA_MEASUREMENT_ID" />
+          <Script id="google-analytics">
+            {`
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+ 
+          gtag('config', 'G-0VVF3E9SJ9');
+        `}
+          </Script>
+        </>
+      )}
+    </>
+  ),
   footer: {
     text: (
       <>
