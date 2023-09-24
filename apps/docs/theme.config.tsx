@@ -1,7 +1,6 @@
 import React from "react";
 import { DocsThemeConfig, Tabs } from "nextra-theme-docs";
 import Link from "next/link";
-import Script from "next/script";
 
 const config: DocsThemeConfig = {
   useNextSeoProps() {

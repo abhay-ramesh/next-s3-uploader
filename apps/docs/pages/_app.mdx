@@ -1,15 +1,9 @@
-// pages/_app.mdx file
-
 import Script from "next/script";
 
-export default function App({ Component, pageProps }) {
+export function Analytics() {
   const GA_TRACKING_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
-
   return (
     <>
-      <Component {...pageProps} />
-      {/* Global Site Tag (gtag.js) - Google Analytics */}
-      {/* We only want to load this in production */}
       {process.env.NODE_ENV === "production" && (
         <>
           <Script
@@ -26,6 +20,15 @@ export default function App({ Component, pageProps }) {
           </Script>
         </>
       )}
+    </>
+  );
+}
+
+export default function App({ Component, pageProps }) {
+  return (
+    <>
+      <Component {...pageProps} />
+      <Analytics />
     </>
   );
 }
