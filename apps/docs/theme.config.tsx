@@ -20,14 +20,16 @@ const config: DocsThemeConfig = {
     <>
       {process.env.NODE_ENV === "production" && (
         <>
-          <Script src="https://www.googletagmanager.com/gtag/js?id=GA_MEASUREMENT_ID" />
+          <Script
+            src={`https://www.googletagmanager.com/gtag/js?id=${process.env.GA_MEASUREMENT_ID}`}
+          />
           <Script id="google-analytics">
             {`
           window.dataLayer = window.dataLayer || [];
           function gtag(){dataLayer.push(arguments);}
           gtag('js', new Date());
  
-          gtag('config', 'G-0VVF3E9SJ9');
+          gtag('config', '${process.env.GA_MEASUREMENT_ID}');
         `}
           </Script>
         </>
