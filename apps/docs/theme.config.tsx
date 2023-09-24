@@ -18,22 +18,18 @@ const config: DocsThemeConfig = {
     "https://github.com/abhay-ramesh/next-s3-uploader/tree/main/apps/docs",
   head: (
     <>
-      {process.env.NODE_ENV === "production" && (
-        <>
-          <Script
-            src={`https://www.googletagmanager.com/gtag/js?id=${process.env.GA_MEASUREMENT_ID}`}
-          />
-          <Script id="google-analytics">
-            {`
+      <Script
+        src={`https://www.googletagmanager.com/gtag/js?id=${process.env.GA_MEASUREMENT_ID}`}
+      />
+      <Script id="google-analytics">
+        {`
           window.dataLayer = window.dataLayer || [];
           function gtag(){dataLayer.push(arguments);}
           gtag('js', new Date());
  
           gtag('config', '${process.env.GA_MEASUREMENT_ID}');
         `}
-          </Script>
-        </>
-      )}
+      </Script>
     </>
   ),
   footer: {
