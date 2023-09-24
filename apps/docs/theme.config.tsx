@@ -16,22 +16,6 @@ const config: DocsThemeConfig = {
   },
   docsRepositoryBase:
     "https://github.com/abhay-ramesh/next-s3-uploader/tree/main/apps/docs",
-  head: (
-    <>
-      <Script
-        src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID}`}
-      />
-      <Script id="google-analytics">
-        {`
-          window.dataLayer = window.dataLayer || [];
-          function gtag(){dataLayer.push(arguments);}
-          gtag('js', new Date());
- 
-          gtag('config', '${process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID}');
-        `}
-      </Script>
-    </>
-  ),
   footer: {
     text: (
       <>
@@ -39,18 +23,6 @@ const config: DocsThemeConfig = {
           MIT {new Date().getFullYear()} &copy;{" "}
           <Link href="https://github.com/abhay-ramesh">Abhay Ramesh</Link>.
         </span>
-        <Script
-          src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID}`}
-        />
-        <Script id="google-analytics">
-          {`
-          window.dataLayer = window.dataLayer || [];
-          function gtag(){dataLayer.push(arguments);}
-          gtag('js', new Date());
- 
-          gtag('config', '${process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID}');
-        `}
-        </Script>
       </>
     ),
   },
