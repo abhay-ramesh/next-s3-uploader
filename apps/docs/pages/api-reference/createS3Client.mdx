@@ -1,0 +1,10 @@
+This function creates an S3 client instance.
+
+- `config`: An object containing S3 configuration options. The available properties are:
+  - `provider` (string): The cloud storage provider to use (`"s3"` for Amazon S3 or `"minio"` for MinIO or `"other"` for other S3-compatible services).
+  - `endpoint` (string, optional): The endpoint URL of the cloud storage service. Required\* for MinIO or other S3-compatible services.
+  - `region` (string): The AWS region or MinIO region to use.
+  - `forcePathStyle` (boolean, optional): Whether to use path-style addressing for S3 bucket access. Only required for MinIO or other S3-compatible services.
+  - `credentials` (object): An object containing AWS access credentials.
+    - `accessKeyId` (string): The access key ID.
+    - `secretAccessKey` (string): The secret access key.

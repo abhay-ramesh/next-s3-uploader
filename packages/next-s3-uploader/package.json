@@ -33,14 +33,14 @@
     "nextjs 13 app directory file upload"
   ],
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.400.0",
-    "@aws-sdk/s3-request-presigner": "^3.400.0",
-    "@aws-sdk/signature-v4-crt": "^3.398.0",
+    "@aws-sdk/client-s3": "^3.427.0",
+    "@aws-sdk/s3-request-presigner": "^3.427.0",
+    "@aws-sdk/signature-v4-multi-region": "^3.425.0",
     "aws-crt": "^1.18.0"
   },
   "devDependencies": {
+    "@types/react": "^18.2.25",
     "react": "^18.2.0",
-    "@types/react": "^18.2.21",
     "tsup": "^7.2.0",
     "typescript": "^5.2.2"
   },
