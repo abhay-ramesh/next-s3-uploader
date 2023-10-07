@@ -1,1 +1,17 @@
 # useS3FileUpload
+
+The `useS3FileUpload` hook accepts an options object that allows customization of the file upload behavior. Available options include:
+
+- `multiple` (boolean, optional): Allow multiple file uploads at once. Default is `false`.
+
+- `maxFiles` (number, optional): Set the maximum number of files that can be uploaded.
+
+- `maxFileSize` (number, optional): Specify the maximum allowed file size for uploads.
+
+```jsx
+const { uploadedFiles, uploadFiles, reset } = useS3FileUpload({
+  multiple: true, // Allow multiple flie uploads (optional)
+  maxFiles: 10, // 10 files limit (optional)
+  maxFileSize: 10 * 1024 * 1024, // 10MB limit (optional)
+});
+```

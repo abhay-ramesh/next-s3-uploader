@@ -17,12 +17,18 @@
   "index": "Introduction",
   "getting-started": "Getting Started",
   "config": "Configuration",
+  "frameworks": {
+    "title": "Frameworks",
+    "display": "hidden"
+  },
+  "nextjs": {
+    "title": "Next.js"
+  },
   "usage": {
     "title": "Usage"
   },
-  "--- API Reference": {
-    "type": "separator",
-    "title": "API Reference"
+  "---": {
+    "type": "separator"
   },
   "api-reference": {
     "title": "API Reference"
