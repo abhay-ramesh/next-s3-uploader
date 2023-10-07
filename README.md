@@ -217,7 +217,7 @@ This function creates an S3 client instance.
     - `accessKeyId` (string): The access key ID.
     - `secretAccessKey` (string): The secret access key.
 
-### `generatePresignedUrls(s3Client, keys, bucket, prefix?)`
+### `generatePresignedUrls(s3Client, keys, bucket, prefix?, privateBucket?)`
 
 Generates pre-signed URLs for uploading objects to S3.
 
