@@ -146,7 +146,7 @@ Inside your API route function, configure the S3 client and generate pre-signed 
 <Tabs items={["AWS S3", "MinIO/S3-Compatible Provider"]} storageKey="s3-provider">
 <Tab>
 
-```javascript {7} filename="app/api/s3-upload.js"
+```javascript {7} filename="app/api/s3upload.js"
 export async function POST(req) {
   try {
     const { keys } = await req.json();

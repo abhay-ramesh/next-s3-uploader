@@ -1,0 +1,11 @@
+{
+    "s3": {
+        "title": "S3"
+    },
+    "azure": {
+        "title": "Azure"
+    },
+    "gcp": {
+        "title": "GCP"
+    }
+}

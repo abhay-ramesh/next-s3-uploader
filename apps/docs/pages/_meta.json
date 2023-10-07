@@ -24,6 +24,9 @@
   "nextjs": {
     "title": "Next.js"
   },
+  "providers": {
+    "title": "Providers"
+  },
   "usage": {
     "title": "Usage"
   },

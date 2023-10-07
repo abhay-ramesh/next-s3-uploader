@@ -1,8 +1,8 @@
-# API Route
+# API Route (Next.js App Dir Route Handler)
 
 Use the `createS3Client` and `generatePresignedUrls` functions to create an API route for handling pre-signed URLs:
 
-```javascript
+```javascript filename="app/api/s3upload.js"
 import { createS3Client, generatePresignedUrls } from "next-s3-uploader";
 
 export async function POST(req) {

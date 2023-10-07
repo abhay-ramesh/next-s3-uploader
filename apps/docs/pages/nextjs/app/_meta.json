@@ -1,4 +1,4 @@
 {
-    "Frontend": "Frontend",
-    "Backend": "Backend"
+    "frontend": "Frontend",
+    "backend": "API Route"
 }
