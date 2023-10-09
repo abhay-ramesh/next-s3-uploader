@@ -7,16 +7,12 @@
   "contact": {
     "title": "Contact ↗",
     "type": "page",
-    "href": "https://github.com/abhayramesh/",
+    "href": "https://github.com/abhay-ramesh/",
     "newWindow": true
   },
   "index": "Introduction",
   "getting-started": "Getting Started",
   "config": "Configuration",
-  "frameworks": {
-    "title": "Frameworks",
-    "display": "hidden"
-  },
   "nextjs": {
     "title": "Next.js"
   },
