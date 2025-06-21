@@ -8,7 +8,25 @@
  * - Transform pipeline support
  */
 
+import { z } from "zod";
+
 import { S3Route } from "./router/router-v2";
+declare class S3Route<
+  TSchema extends S3Schema = S3Schema,
+  TMetadata = any,
+  TInput = undefined,
+> {
+  constructor(schema: TSchema, config?: any);
+  input<TNewInput>(
+    inputSchema: z.ZodType<TNewInput>
+  ): S3Route<TSchema, TMetadata, TNewInput>;
+  middleware<TNewMetadata>(
+    middleware: any
+  ): S3Route<TSchema, TNewMetadata, TInput>;
+  onUploadStart(hook: any): S3Route<TSchema, TMetadata, TInput>;
+  onUploadComplete(hook: any): S3Route<TSchema, TMetadata, TInput>;
+  onUploadError(hook: any): S3Route<TSchema, TMetadata, TInput>;
+}
 
 // ========================================
 // Core Types
@@ -295,8 +313,12 @@ export class S3FileSchema extends S3Schema<File, File> {
       metadata: any;
     }) => Promise<TMetadata> | TMetadata
   ) {
-    // Import S3Route dynamically to avoid circular imports
     return new S3Route(this).middleware(middleware);
+  }
+
+  // Input validation with Zod
+  input<TInput>(inputSchema: z.ZodType<TInput>): S3Route<this, any, TInput> {
+    return new S3Route(this).input(inputSchema);
   }
 
   onUploadStart(

@@ -2,13 +2,12 @@
 
 import { formatETA, formatUploadSpeed, useUploadRoute } from "pushduck/client";
 import { useState } from "react";
-import type { AppS3Router } from "../app/api/s3-upload/route";
 
 export function SimpleImageUpload() {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
 
   const { uploadFiles, files, isUploading, errors, reset } =
-    useUploadRoute<AppS3Router>("imageUpload");
+    useUploadRoute("imageUpload");
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const fileList = e.target.files;

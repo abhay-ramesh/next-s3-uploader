@@ -15,6 +15,7 @@ import type {
   S3RouteUploadResult,
   S3Router,
   S3UploadedFile,
+  TypedUploadResult,
 } from "../types";
 
 // ========================================
@@ -94,10 +95,13 @@ async function uploadToS3(
 // Main Hook Implementation
 // ========================================
 
-export function useUploadRoute<TRouter extends S3Router<any>>(
-  routeName: RouterRouteNames<TRouter>,
+export function useUploadRoute<
+  TRouter extends S3Router<any>,
+  TRouteName extends RouterRouteNames<TRouter>,
+>(
+  routeName: TRouteName,
   config?: S3RouteUploadConfig
-): S3RouteUploadResult;
+): TypedUploadResult<TRouter, TRouteName>;
 
 export function useUploadRoute(
   routeName: string,
@@ -107,7 +111,7 @@ export function useUploadRoute(
 export function useUploadRoute<TRouter extends S3Router<any>>(
   routeName: RouterRouteNames<TRouter> | string,
   config: S3RouteUploadConfig = {}
-): S3RouteUploadResult {
+): S3RouteUploadResult | TypedUploadResult<TRouter, any> {
   const [files, setFiles] = useState<S3UploadedFile[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [errors, setErrors] = useState<string[]>([]);
@@ -148,7 +152,7 @@ export function useUploadRoute<TRouter extends S3Router<any>>(
   );
 
   const startUpload = useCallback(
-    async (uploadFiles: File[]) => {
+    async (uploadFiles: File[], input?: any) => {
       if (!uploadFiles.length) return;
 
       try {
@@ -176,12 +180,19 @@ export function useUploadRoute<TRouter extends S3Router<any>>(
         setFiles(initialFiles);
 
         const endpoint = config.endpoint || "/api/s3-upload";
+        const requestBody: any = { files: fileMetadata };
+
+        // Add input to request body if provided
+        if (input !== undefined) {
+          requestBody.input = input;
+        }
+
         const presignResponse = await fetch(
           `${endpoint}?route=${String(routeName)}&action=presign`,
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ files: fileMetadata }),
+            body: JSON.stringify(requestBody),
           }
         );
 

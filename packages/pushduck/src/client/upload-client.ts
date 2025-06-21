@@ -25,21 +25,24 @@ import type {
 /**
  * Hook for individual route access (internal)
  */
-function useTypedRoute<TRouter extends S3Router<any>>(
-  routeName: string,
+function useTypedRoute<
+  TRouter extends S3Router<any>,
+  TRouteName extends string,
+>(
+  routeName: TRouteName,
   config: ClientConfig
-): TypedRouteHook<TRouter> {
+): TypedRouteHook<TRouter, TRouteName> {
   const hookResult = useUploadRoute(routeName, { endpoint: config.endpoint });
 
   const enhancedUploadFiles = useCallback(
-    async (files: File[], metadata?: any) => {
-      await hookResult.uploadFiles(files);
+    async (files: File[], input?: any) => {
+      await hookResult.uploadFiles(files, input);
       return hookResult.files.map((file) => ({
         ...file,
-        metadata,
+        routeName,
       }));
     },
-    [hookResult.uploadFiles, hookResult.files]
+    [hookResult.uploadFiles, hookResult.files, routeName]
   );
 
   return {
@@ -81,7 +84,7 @@ export function createUploadClient<TRouter extends S3Router<any>>(
 
       // Return a hook factory function (tRPC pattern)
       // This ensures hooks are called consistently on every render
-      return () => useTypedRoute<TRouter>(prop, config);
+      return () => useTypedRoute<TRouter, typeof prop>(prop, config);
     },
 
     has(target, prop) {

@@ -39,9 +39,22 @@ export interface S3RouteUploadConfig {
   onProgress?: (progress: number) => void;
 }
 
-export interface S3RouteUploadResult {
+// Generic upload result interface
+export interface S3RouteUploadResult<TInput = any> {
   files: S3UploadedFile[];
-  uploadFiles: (files: File[]) => Promise<void>;
+  uploadFiles: (files: File[], input?: TInput) => Promise<void>;
+  reset: () => void;
+  isUploading: boolean;
+  errors: string[];
+}
+
+// Typed upload result that infers input type from router
+export interface TypedUploadResult<TRouter, TRouteName> {
+  files: S3UploadedFile[];
+  uploadFiles: (
+    files: File[],
+    input?: InferRouterInput<TRouter, TRouteName>
+  ) => Promise<void>;
   reset: () => void;
   isUploading: boolean;
   errors: string[];
@@ -56,7 +69,27 @@ export interface S3Route<TSchema = any, TConstraints = any> {
   constraints?: TConstraints;
 }
 
-// S3Router is imported above and re-exported through usage
+// Import S3Router type before using it
+import type {
+  GetRoute,
+  InferRouteInput as InferRouteInputFromRouter,
+  S3Router,
+} from "../core/router/router-v2";
+
+// Re-export for external use
+export type { S3Router };
+
+// Extract route names as string literal union
+export type RouterRouteNames<T> =
+  T extends S3Router<infer TRoutes> ? keyof TRoutes : never;
+
+// Infer input type from a route (use the router's type utility)
+export type InferRouteInput<T> = InferRouteInputFromRouter<T>;
+
+// Infer input type from router and route name (use the router's GetRoute utility)
+export type InferRouterInput<TRouter, TRouteName> = InferRouteInput<
+  GetRoute<TRouter, TRouteName>
+>;
 
 // ========================================
 // Client Types
@@ -84,26 +117,15 @@ export interface TypedRouteHook<
   TRouteName extends string = string,
 > {
   files: TypedUploadedFile[];
-  uploadFiles: (files: File[], metadata?: any) => Promise<any[]>;
+  uploadFiles: (
+    files: File[],
+    input?: InferRouterInput<TRouter, TRouteName>
+  ) => Promise<TypedUploadedFile[]>;
   reset: () => void;
   isUploading: boolean;
   errors: string[];
   routeName: TRouteName;
 }
-
-// ========================================
-// Template Literal Types
-// ========================================
-
-// Import S3Router type before using it
-import type { S3Router } from "../core/router/router-v2";
-
-// Re-export for external use
-export type { S3Router };
-
-// Extract route names as string literal union
-export type RouterRouteNames<T> =
-  T extends S3Router<infer TRoutes> ? keyof TRoutes : never;
 
 // Infer complete client interface from server router
 // Each route property returns a hook factory function (tRPC pattern)
@@ -116,5 +138,9 @@ export type InferClientRouter<T> =
         >;
       }
     : never;
+
+// ========================================
+// Template Literal Types
+// ========================================
 
 // Legacy types removed - use TypedRouteHook and ClientConfig instead

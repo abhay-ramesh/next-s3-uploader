@@ -9,8 +9,9 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import { getUploadConfig } from "../config/upload-config";
-import { InferS3Input, InferS3Output, S3Schema } from "../schema";
+import { InferS3Output, S3Schema } from "../schema";
 import {
   generateFileKey,
   generatePresignedUploadUrl,
@@ -34,6 +35,7 @@ export interface S3FileMetadata {
 
 export interface S3MiddlewareContext extends S3RouteContext {
   file: S3FileMetadata;
+  input?: any; // Input from client (validated if schema provided)
 }
 
 export interface S3LifecycleContext<T = any> {
@@ -43,8 +45,8 @@ export interface S3LifecycleContext<T = any> {
   key?: string;
 }
 
-export type S3Middleware<TInput = any, TOutput = any> = (
-  ctx: S3MiddlewareContext & { metadata: TInput }
+export type S3Middleware<TInput = any, TOutput = any, TInputData = any> = (
+  ctx: S3MiddlewareContext & { metadata: TInput; input?: TInputData }
 ) => Promise<TOutput> | TOutput;
 
 export type S3LifecycleHook<T = any> = (
@@ -86,21 +88,48 @@ export interface S3RoutePathConfig<TMetadata = any> {
 // Route Configuration
 // ========================================
 
-export class S3Route<TSchema extends S3Schema = S3Schema, TMetadata = any> {
+export class S3Route<
+  TSchema extends S3Schema = S3Schema,
+  TMetadata = any,
+  TInput = undefined,
+> {
   constructor(
     private schema: TSchema,
-    private config: S3RouteConfig<TMetadata> = {}
+    private config: S3RouteConfig<TMetadata, TInput> = {}
   ) {}
+
+  // Input validation with Zod
+  input<TNewInput>(
+    inputSchema: z.ZodType<TNewInput>
+  ): S3Route<TSchema, TMetadata, TNewInput> {
+    const newConfig: S3RouteConfig<TMetadata, TNewInput> = {
+      ...this.config,
+      inputSchema,
+    };
+    return new S3Route(this.schema, newConfig);
+  }
 
   // Middleware registration
   middleware<TNewMetadata>(
-    middleware: S3Middleware<TMetadata, TNewMetadata>
-  ): S3Route<TSchema, TNewMetadata> {
-    const newConfig: S3RouteConfig<TNewMetadata> = {
+    middleware: S3Middleware<TMetadata, TNewMetadata, TInput>
+  ): S3Route<TSchema, TNewMetadata, TInput> {
+    const newConfig: S3RouteConfig<TNewMetadata, TInput> = {
       middleware: [
         ...(this.config.middleware || []),
-        middleware as S3Middleware<any, any>,
+        middleware as S3Middleware<any, any, any>,
       ],
+      paths: this.config.paths as unknown as S3RoutePathConfig<TNewMetadata>,
+      inputSchema: this.config.inputSchema,
+      onUploadStart: this.config
+        .onUploadStart as unknown as S3LifecycleHook<TNewMetadata>,
+      onUploadProgress: this.config.onUploadProgress as unknown as (
+        ctx: S3LifecycleContext<TNewMetadata> & { progress: number }
+      ) => Promise<void> | void,
+      onUploadComplete: this.config
+        .onUploadComplete as unknown as S3LifecycleHook<TNewMetadata>,
+      onUploadError: this.config.onUploadError as unknown as (
+        ctx: S3LifecycleContext<TNewMetadata> & { error: Error }
+      ) => Promise<void> | void,
     };
     return new S3Route(this.schema, newConfig);
   }
@@ -141,14 +170,15 @@ export class S3Route<TSchema extends S3Schema = S3Schema, TMetadata = any> {
   }
 
   // Internal method to get configuration
-  _getConfig(): S3RouteConfig<TMetadata> & { schema: TSchema } {
+  _getConfig(): S3RouteConfig<TMetadata, TInput> & { schema: TSchema } {
     return { ...this.config, schema: this.schema };
   }
 }
 
-interface S3RouteConfig<TMetadata = any> {
-  middleware?: S3Middleware<any, any>[];
+interface S3RouteConfig<TMetadata = any, TInput = undefined> {
+  middleware?: S3Middleware<any, any, TInput>[];
   paths?: S3RoutePathConfig<TMetadata>;
+  inputSchema?: z.ZodType<TInput>;
   onUploadStart?: S3LifecycleHook<TMetadata>;
   onUploadProgress?: (
     ctx: S3LifecycleContext<TMetadata> & { progress: number }
@@ -256,7 +286,8 @@ export class S3Router<TRoutes extends S3RouterDefinition> {
   async generatePresignedUrls<K extends keyof TRoutes>(
     routeName: K,
     req: NextRequest,
-    files: S3FileMetadata[]
+    files: S3FileMetadata[],
+    input?: any
   ): Promise<PresignedUrlResponse[]> {
     const route = this.getRoute(routeName);
     if (!route) {
@@ -267,14 +298,31 @@ export class S3Router<TRoutes extends S3RouterDefinition> {
     const uploadConfig = getUploadConfig();
     const results: PresignedUrlResponse[] = [];
 
+    // Validate input if schema is provided
+    let validatedInput: any = input;
+    if (routeConfig.inputSchema && input !== undefined) {
+      try {
+        validatedInput = routeConfig.inputSchema.parse(input);
+      } catch (error) {
+        throw new Error(
+          `Input validation failed: ${error instanceof Error ? error.message : "Unknown error"}`
+        );
+      }
+    }
+
     for (const file of files) {
       try {
-        // 1. Run middleware chain
+        // 1. Run middleware chain with validated input
         let metadata: any = {};
         const middlewareChain = routeConfig.middleware || [];
 
         for (const middleware of middlewareChain) {
-          metadata = await middleware({ req, file, metadata });
+          metadata = await middleware({
+            req,
+            file,
+            metadata,
+            input: validatedInput,
+          });
         }
 
         // 2. Validate file against schema (metadata only)
@@ -310,6 +358,7 @@ export class S3Router<TRoutes extends S3RouterDefinition> {
             originalName: file.name,
             userId: metadata.userId || metadata.user?.id || "anonymous",
             routeName: String(routeName),
+            input: validatedInput,
           },
         });
 
@@ -481,7 +530,8 @@ export function createS3Handler<TRoutes extends S3RouterDefinition>(
         const results = await router.generatePresignedUrls(
           routeName,
           req,
-          files
+          files,
+          body.input
         );
 
         return NextResponse.json({ results });
@@ -539,7 +589,7 @@ export type InferRouterRoutes<T> =
   T extends S3Router<infer TRoutes> ? TRoutes : never;
 
 export type InferRouteInput<T> =
-  T extends S3Route<infer TSchema, any> ? InferS3Input<TSchema> : never;
+  T extends S3Route<any, any, infer TInput> ? TInput : never;
 
 export type InferRouteOutput<T> =
   T extends S3Route<infer TSchema, any> ? InferS3Output<TSchema> : never;

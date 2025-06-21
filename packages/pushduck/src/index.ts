@@ -37,10 +37,18 @@ export type { ClientConfig } from "./types";
 // Router types for type inference
 export type {
   InferClientRouter,
+  InferRouteInput,
+  InferRouterInput,
   RouterRouteNames,
   S3Router,
   TypedRouteHook,
 } from "./types";
+
+// Router utility types
+export type {
+  GetRoute,
+  InferRouteInput as InferRouteInputFromRouter,
+} from "./core/router/router-v2";
 
 // ========================================
 // CONFIGURATION (Client-safe)

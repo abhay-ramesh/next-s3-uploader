@@ -96,7 +96,7 @@
     "tsdown": "^0.12.8",
     "typescript": "^5.2.2",
     "vitest": "^0.34.6",
-    "zod": "^3.22.4"
+    "zod": "^3.25.67"
   },
   "peerDependencies": {
     "next": ">=13.0.0",

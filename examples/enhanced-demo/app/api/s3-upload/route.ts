@@ -6,19 +6,34 @@
  */
 
 import { createS3Handler, s3 } from "@/lib/upload";
+import { z } from "zod";
 
-// Define upload routes with simple, clear path configuration
+// Define upload routes with input validation
 const s3Router = s3.createRouter({
-  // Image uploads: uploads/images/{userId}/{timestamp}/{randomId}/filename.jpg
+  // Image uploads with typed input validation
   imageUpload: s3
     .image()
     .max("5MB")
     .formats(["jpeg", "jpg", "png", "webp"])
-    .middleware(async ({ file, metadata }) => {
+    .input(
+      z.object({
+        albumId: z.string().min(1, "Album ID is required"),
+        tags: z
+          .array(z.string())
+          .max(10, "Maximum 10 tags allowed")
+          .default([]),
+        isPublic: z.boolean().default(false),
+        caption: z.string().max(500, "Caption too long").optional(),
+      })
+    )
+    .middleware(async ({ file, metadata, input }) => {
       console.log("Processing image upload:", file.name);
+      console.log("Validated input:", input); // Fully typed and validated
+
       // Add user context (in real app, get from auth)
       return {
         ...metadata,
+        ...input, // Spread validated input
         userId: "demo-user",
         uploadedAt: new Date().toISOString(),
         category: "images",
@@ -31,22 +46,12 @@ const s3Router = s3.createRouter({
     })
     .onUploadComplete(async ({ file, url, metadata }) => {
       console.log(`✅ Image upload complete: ${file.name} -> ${url}`, metadata);
-
-      // Here you could save to database, send notifications, etc.
-      // await db.images.create({
-      //   key,
-      //   url,
-      //   filename: file.name,
-      //   size: file.size,
-      //   userId: metadata.userId,
-      //   category: metadata.category,
-      // });
     })
     .onUploadError(async ({ file, error }) => {
       console.error(`❌ Image upload failed: ${file.name}`, error);
     }),
 
-  // Document uploads: uploads/documents/{userId}/{timestamp}/{randomId}/filename.pdf
+  // Document uploads with validation
   documentUpload: s3
     .file()
     .max("10MB")
@@ -56,56 +61,41 @@ const s3Router = s3.createRouter({
       "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
       "text/plain",
     ])
-    .middleware(async ({ file, metadata }) => {
+    .input(
+      z.object({
+        folderId: z.string().uuid("Invalid folder ID"),
+        title: z
+          .string()
+          .min(1, "Title is required")
+          .max(100, "Title too long"),
+        description: z.string().max(1000, "Description too long").optional(),
+        isPublic: z.boolean().default(false),
+      })
+    )
+    .middleware(async ({ file, metadata, input }) => {
       console.log("Processing document upload:", file.name);
+      console.log("Document metadata:", input);
+
       return {
         ...metadata,
+        ...input,
         userId: "demo-user",
         category: "documents",
         uploadedAt: new Date().toISOString(),
       };
     })
     .paths({
-      // Simple: just add "documents" folder under global prefix
-      // Result: uploads/documents/{userId}/{timestamp}/{randomId}/filename.pdf
       prefix: "documents",
     })
     .onUploadComplete(async ({ file, url, metadata }) => {
-      console.log(`✅ Document uploaded: ${file.name} -> ${url}`);
-    }),
-
-  // Custom organized images: uploads/gallery/2024/06/demo-user/filename.jpg
-  galleryUpload: s3
-    .image()
-    .max("5MB")
-    .formats(["jpeg", "jpg", "png", "webp"])
-    .middleware(async ({ file, metadata }) => {
-      return {
-        ...metadata,
-        userId: "demo-user",
-        category: "gallery",
-      };
-    })
-    .paths({
-      // Custom organization with date-based structure
-      generateKey: (ctx) => {
-        const { file, metadata, globalConfig } = ctx;
-        const globalPrefix = globalConfig.prefix || "uploads";
-        const date = new Date();
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, "0");
-        const userId = metadata.userId || "anonymous";
-
-        // Custom path: uploads/gallery/2024/06/demo-user/filename.jpg
-        return `${globalPrefix}/gallery/${year}/${month}/${userId}/${file.name}`;
-      },
-    })
-    .onUploadComplete(async ({ file, url, metadata }) => {
-      console.log(`✅ Gallery image uploaded: ${file.name} -> ${url}`);
+      console.log(
+        `✅ Document upload complete: ${file.name} -> ${url}`,
+        metadata
+      );
     }),
 
   // General uploads: uploads/{userId}/{timestamp}/{randomId}/filename.ext
-  // Uses pure global configuration - no route-level paths
+  // Uses pure global configuration - no route-level paths or input validation
   generalUpload: s3
     .file()
     .max("20MB")
@@ -116,7 +106,7 @@ const s3Router = s3.createRouter({
         category: "general",
       };
     })
-    // No .paths() - uses global configuration only
+    // No .input() or .paths() - uses global configuration only
     .onUploadComplete(async ({ file, url, metadata }) => {
       console.log(`✅ General file uploaded: ${file.name} -> ${url}`);
     }),
@@ -128,3 +118,43 @@ export type AppS3Router = typeof s3Router;
 // Export the HTTP handlers
 const handlers = createS3Handler(s3Router);
 export const { GET, POST } = handlers;
+
+/*
+// Example of how .input() would work when implemented:
+
+const s3Router = s3.createRouter({
+  imageUpload: s3
+    .image()
+    .max("5MB")
+    .formats(["jpeg", "jpg", "png", "webp"])
+    .input(z.object({
+      albumId: z.string().min(1, "Album ID is required"),
+      tags: z.array(z.string()).max(10, "Maximum 10 tags allowed").default([]),
+      isPublic: z.boolean().default(false),
+      caption: z.string().max(500, "Caption too long").optional(),
+    }))
+    .middleware(async ({ file, metadata, input }) => {
+      // input is now fully typed and validated
+      console.log("Album ID:", input.albumId); // ✅ Type-safe
+      console.log("Tags:", input.tags);         // ✅ Type-safe
+      
+      return {
+        ...metadata,
+        ...input,
+        userId: "demo-user",
+      };
+    }),
+});
+
+// Client usage would be:
+await uploadFiles({
+  route: 'imageUpload',
+  files: selectedFiles,
+  input: {
+    albumId: "vacation-2024",
+    tags: ["beach", "sunset"],
+    isPublic: true,
+    caption: "Beautiful sunset at the beach"
+  }
+});
+*/

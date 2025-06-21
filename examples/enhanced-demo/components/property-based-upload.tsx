@@ -68,7 +68,7 @@ export function PropertyBasedImageUpload() {
           <li>
             •{" "}
             <code className="px-1 bg-emerald-100 rounded">
-              upload.imagegUpload()
+              upload.imageUpload()
             </code>{" "}
             - Hook factory pattern (tRPC-style)
           </li>

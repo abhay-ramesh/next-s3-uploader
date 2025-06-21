@@ -12,7 +12,7 @@ import type { AppS3Router } from "../app/api/s3-upload/route";
  * Create the typed upload client with enhanced type inference
  *
  * This provides property-based access to upload routes:
- * - upload.imagegUpload() - for image uploads
+ * - upload.imageUpload() - for image uploads
  * - upload.documentUpload() - for document uploads
  *
  * Features:
@@ -31,7 +31,7 @@ export const upload = createUploadClient<AppS3Router>({
  * @example
  * ```typescript
  * // Property-based access with full type safety (hook factory pattern)
- * const { uploadFiles, files, isUploading, errors, reset } = upload.imagegUpload();
+ * const { uploadFiles, files, isUploading, errors, reset } = upload.imageUpload();
  *
  * // Upload files with automatic route inference
  * await uploadFiles(selectedFiles);
