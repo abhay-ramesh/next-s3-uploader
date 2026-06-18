@@ -6,18 +6,55 @@ import {
   PutObjectCommandInput,
   S3Client,
 } from "@aws-sdk/client-s3";
+import z from "zod";
+
+type Prettify<T> = {
+  [K in keyof T]: T[K];
+} & {};
+
+const configSchema = z.object({
+  provider: z.enum(["aws", "minio", "other"]),
+  endpoint: z.string().optional(),
+  region: z.string(),
+  forcePathStyle: z.boolean().optional(),
+  credentials: z.object({
+    accessKeyId: z.string(),
+    secretAccessKey: z.string(),
+  }),
+});
+
+type createS3ClientConfig = z.infer<typeof configSchema>;
 
 // Create an S3 Client instance
-export const createS3Client = (config: {
-  provider: "aws" | "minio" | "other";
-  endpoint?: string;
-  region: string;
-  forcePathStyle?: boolean;
-  credentials: {
-    accessKeyId: string;
-    secretAccessKey: string;
-  };
-}) => {
+/**
+ * @param provider S3 provider (aws, minio, other)
+ * @param endpoint S3 endpoint (required if provider is not "aws")
+ * @param region S3 region
+ * @param forcePathStyle Whether to force path style URLs (required if provider is not "aws")
+ * @param credentials S3 credentials (accessKeyId and secretAccessKey)
+ * @returns S3Client instance
+ * @example
+ * const s3Client = createS3Client({
+ *  provider: "aws",
+ *  region: "us-east-1",
+ *  credentials: {
+ *    accessKeyId: "accessKeyId",
+ *    secretAccessKey: "secretAccessKey",
+ *  },
+ * });
+ **/
+export const createS3Client = (config: createS3ClientConfig) => {
+  if (!config.provider) throw new Error("Missing provider");
+  if (!config.region) throw new Error("Missing region");
+  if (!config.credentials) throw new Error("Missing credentials");
+  if (!config.credentials.accessKeyId)
+    throw new Error("Missing credentials.accessKeyId");
+  if (!config.credentials.secretAccessKey)
+    throw new Error("Missing credentials.secretAccessKey");
+
+  if (config.provider !== "aws" && !config.endpoint)
+    throw new Error("Missing endpoint");
+
   return new S3Client({
     region: config.region,
     credentials: {
@@ -33,7 +70,29 @@ export const createS3Client = (config: {
   });
 };
 
+const uploadConfigSchema = z.object({
+  keys: z.array(z.string()),
+  bucket: z.string(),
+  prefix: z.string().optional(),
+  privateBucket: z.boolean().optional(),
+  options: z.object({
+    expiresIn: z.number().optional(),
+  }),
+});
+
 // Generate Presigned URLs for uploading objects to S3
+/**
+ * @param s3Client S3Client instance
+ * @param keys Array of keys to generate presigned URLs for
+ * @param bucket S3 bucket name
+ * @param prefix Prefix to add to the key
+ * @param privateBucket Whether the bucket is private or not
+ * @param operation Whether to generate presigned URLs for uploading or downloading
+ * @param options Options for the presigned URL
+ * @returns Array of presigned URLs
+ * @example
+ * const urls = await generatePresignedUrls(s3Client, ["file1.txt", "file2.txt"], "my-bucket", "my-prefix/", false, "upload", { expiresIn: 3600 });
+ **/
 export async function generatePresignedUrls(
   s3Client: S3Client,
   keys: string[],
@@ -41,7 +100,7 @@ export async function generatePresignedUrls(
   prefix?: string,
   privateBucket: boolean = false,
   operation: "upload" | "download" = "upload",
-  options?: { expiresIn?: number }
+  options: { expiresIn: number } = { expiresIn: 3600 }
 ) {
   const urls = [];
 
@@ -58,7 +117,7 @@ export async function generatePresignedUrls(
         s3Client,
         new PutObjectCommand(ObjectParams as PutObjectCommandInput), // Cast to the appropriate type
         {
-          expiresIn: options?.expiresIn ?? 3600,
+          expiresIn: options.expiresIn,
         }
       );
       let s3ObjectUrl = "";
@@ -84,7 +143,7 @@ export async function generatePresignedUrls(
         s3Client,
         new GetObjectCommand(ObjectParams as GetObjectCommandInput), // Cast to the appropriate type
         {
-          expiresIn: options?.expiresIn ?? 3600,
+          expiresIn: options.expiresIn,
         }
       );
 
