@@ -31,13 +31,14 @@ jobs:
           node-version: 22
           registry-url: "https://registry.npmjs.org"
 
-      # Trusted publishing: npm exchanges this job's GitHub identity for a
-      # short-lived publish credential. No NPM_TOKEN secret exists or is
-      # needed. The package must list this repo + release.yml as its Trusted
-      # Publisher on npmjs.com. Requires npm >= 11.5.1.
-      - name: Use npm with trusted publishing support
+      # Trusted + staged publishing: npm exchanges this job's GitHub identity
+      # for a short-lived credential that can only STAGE a version; it goes
+      # public once a maintainer approves it on npmjs.com with 2FA. No
+      # NPM_TOKEN exists. The package must list this repo + release.yml as its
+      # Trusted Publisher on npmjs.com. `npm stage` needs npm >= 11.21.
+      - name: Use npm with trusted + staged publishing support
         run: |
-          npm install -g npm@11.11.0
+          npm install -g npm@11.21.2
           npm --version
 
       - name: Install Dependencies
@@ -47,7 +48,7 @@ jobs:
         id: changesets
         uses: changesets/action@v1
         with:
-          # Builds the packages and runs `changeset publish`
+          # Builds, then stages the version on npm (.github/scripts/stage-publish.sh)
           publish: pnpm release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
