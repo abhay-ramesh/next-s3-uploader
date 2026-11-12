@@ -7,33 +7,48 @@ on:
 
 concurrency: ${{ github.workflow }}-${{ github.ref }}
 
+# Least privilege by default; the release job opts into what it needs.
+permissions: {}
+
 jobs:
   release:
     name: Release
     runs-on: ubuntu-latest
+    permissions:
+      contents: write # changesets pushes the version branch and tags
+      pull-requests: write # changesets opens the "Version Packages" PR
+      id-token: write # npm trusted publishing (OIDC) and provenance
     steps:
       - name: Checkout Repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
-      - name: Setup pnpm 7
-        uses: pnpm/action-setup@v2
-        with:
-          version: 7
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4 # version comes from package.json "packageManager"
 
-      - name: Setup Node.js 18.x
-        uses: actions/setup-node@v2
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          node-version: 18.x
+          node-version: 22
+          registry-url: "https://registry.npmjs.org"
+
+      # Trusted publishing: npm exchanges this job's GitHub identity for a
+      # short-lived publish credential. No NPM_TOKEN secret exists or is
+      # needed. The package must list this repo + release.yml as its Trusted
+      # Publisher on npmjs.com. Requires npm >= 11.5.1.
+      - name: Use npm with trusted publishing support
+        run: |
+          npm install -g npm@11.11.0
+          npm --version
 
       - name: Install Dependencies
-        run: pnpm install --no-frozen-lockfile
+        run: pnpm install --no-frozen-lockfile # lockfile is stale; regenerate it, then switch to --frozen-lockfile
 
       - name: Create Release Pull Request or Publish to npm
         id: changesets
         uses: changesets/action@v1
         with:
-          # This expects you to have a script called release which does a build for your packages and calls changeset publish
+          # Builds the packages and runs `changeset publish`
           publish: pnpm release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_CONFIG_PROVENANCE: "true"
